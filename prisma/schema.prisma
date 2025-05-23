@@ -1,0 +1,85 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model categoria {
+  id            Int             @id @default(autoincrement())
+  nome          String          @db.VarChar(255)
+  icon          String?         @db.VarChar(255)
+  sub_categoria sub_categoria[]
+}
+
+model produtos {
+  id               Int               @id @default(autoincrement())
+  nome             String            @db.VarChar(255)
+  preco            String            @db.VarChar(255)
+  id_sub_categoria Int
+  descricao        String            @db.Text
+  foto             String            @db.VarChar(255)
+  quantped         Int               @default(0)
+  carrinho         carrinho[]
+  prod_adicionais  prod_adicionais[]
+}
+
+model sub_categoria {
+  id           Int       @id @default(autoincrement())
+  nome         String    @db.VarChar(255)
+  id_categoria Int
+  icon         String?   @db.VarChar(255)
+  categoria    categoria @relation(fields: [id_categoria], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "sub_categoria_ibfk_1")
+
+  @@index([id_categoria], map: "id_categoria")
+}
+
+model user {
+  id        Int     @id @default(autoincrement())
+  nome      String  @db.VarChar(100)
+  sobrenome String  @db.VarChar(100)
+  login     String  @unique(map: "login") @db.VarChar(50)
+  senha     String  @db.VarChar(255)
+  foto      String? @db.VarChar(255)
+}
+
+model adicionais {
+  id              Int               @id @default(autoincrement())
+  nome            String            @db.VarChar(255)
+  preco           Decimal           @db.Decimal(10, 2)
+  prod_adicionais prod_adicionais[]
+}
+
+model prod_adicionais {
+  id           Int        @id @default(autoincrement())
+  id_produto   Int
+  id_adicional Int
+  produtos     produtos   @relation(fields: [id_produto], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "prod_adicionais_ibfk_1")
+  adicionais   adicionais @relation(fields: [id_adicional], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "prod_adicionais_ibfk_2")
+
+  @@index([id_adicional], map: "id_adicional")
+  @@index([id_produto], map: "id_produto")
+}
+
+model num_mesas {
+  id        Int        @id @default(autoincrement())
+  num_mesas Int
+  info      Int
+  carrinho  carrinho[]
+}
+
+model carrinho {
+  id            Int        @id @default(autoincrement())
+  id_num_mesa   Int?
+  id_produto    Int?
+  id_adicionais Json?
+  qnt           Int?
+  info          Int?       @default(0)
+  num_mesas     num_mesas? @relation(fields: [id_num_mesa], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "carrinho_ibfk_1")
+  produtos      produtos?  @relation(fields: [id_produto], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "carrinho_ibfk_2")
+
+  @@index([id_num_mesa], map: "id_num_mesa")
+  @@index([id_produto], map: "id_produto")
+}
